@@ -16,6 +16,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +27,7 @@ import java.util.logging.Logger;
  */
 public class TagLocationInsightProcessor extends Thread {
     
-    
+    private Map<HWTagRoomInfo, Integer> attendanceMap = null;
     public void run()
     {
         //while(true)
@@ -38,13 +40,15 @@ public class TagLocationInsightProcessor extends Thread {
     
     private synchronized void makeInsights()
     {
+        attendanceMap = new HashMap<HWTagRoomInfo, Integer>();
         ResultSet rs = null;
         Statement stmt = null;
         try {
             Connection conn = DatabaseManager.getConnection();
             stmt = conn.createStatement();
             rs = stmt.executeQuery("Select * from edudb.attdmp4mhw where datareadtime is null");
-            process(rs);        
+            process(rs);  
+            System.out.println(attendanceMap);
             }catch (SQLException e) 
             {
                 e.printStackTrace();
@@ -68,13 +72,12 @@ public class TagLocationInsightProcessor extends Thread {
     {
         while(rs.next())
         {
-            Date currentTime = new Date();
-            HWTagRoomInfo tagLocationInfo = getRowData(rs);
-            //isStudentAndClassCorrectAsPerSchedule(tagLocationInfo);
-            String studentId = getStudentWithTag(tagLocationInfo.getTagId());
+            HWTagRoomInfo tagRoomInfo = getRowData(rs);
+            //isStudentAndClassCorrectAsPerSchedule(tagRoomInfo);
+            String studentId = getStudentWithTag(tagRoomInfo.getTagId());
             String gradeId = getGradeForStudent(studentId);
-            Date sweepTime = tagLocationInfo.getSweepTime();
-            String roomId = getRoomWithTag(tagLocationInfo.getRoomId());
+            Date sweepTime = tagRoomInfo.getSweepTime();
+            String roomId = getRoomWithTag(tagRoomInfo.getRoomId());
             ArrayList<String> courseList = getAllCoursesForGrade(gradeId);
             
             if(courseList==null)
@@ -96,6 +99,14 @@ public class TagLocationInsightProcessor extends Thread {
                 {
                  if(doesSweepTimeMatchesWithRoomAndScheduledCourse(coursePeriod, sweepTime, roomId))
                  {
+                     if(attendanceMap.get(tagRoomInfo) == null)
+                     {
+                      attendanceMap.put(tagRoomInfo, 1);
+                     }
+                     else
+                     {
+                      attendanceMap.put(tagRoomInfo,((Integer) attendanceMap.get(tagRoomInfo))+1);
+                     }
                   System.out.println("Matches "+studentId+ " and "+sweepTime +" for classroom "+roomId);
                  }
                  else
@@ -103,11 +114,9 @@ public class TagLocationInsightProcessor extends Thread {
                   System.out.println("Does not match "+studentId+ " and "+sweepTime +" for classroom "+roomId);
                  }
 
-                    
-                System.out.println("Course Period id "+coursePeriod);
                 }
             }
-            //updateDateReadForTagLocationInfo(tagLocationInfo.getRecordId(), currentTime);
+            //updateDateReadForTagLocationInfo(tagRoomInfo.getRecordId(), currentTime);
         }
     }
     
@@ -145,14 +154,14 @@ public class TagLocationInsightProcessor extends Thread {
     
     private HWTagRoomInfo getRowData(ResultSet rs) throws SQLException
     {
-        HWTagRoomInfo tagLocationInfo = new HWTagRoomInfo();
-        tagLocationInfo.setRecordId(rs.getString("id"));
-        tagLocationInfo.setRoomId(rs.getString("classname"));
-        tagLocationInfo.setTagId(rs.getString("tagname"));
-        tagLocationInfo.setRsi(rs.getString("rsi"));
-        tagLocationInfo.setSweepTime(rs.getTime("scantime"));
-        System.out.println(tagLocationInfo);
-        return tagLocationInfo;
+        HWTagRoomInfo tagRoomInfo = new HWTagRoomInfo();
+        tagRoomInfo.setRecordId(rs.getString("id"));
+        tagRoomInfo.setRoomId(rs.getString("classname"));
+        tagRoomInfo.setTagId(rs.getString("tagname"));
+        tagRoomInfo.setRsi(rs.getString("rsi"));
+        tagRoomInfo.setSweepTime(rs.getTime("scantime"));
+        System.out.println(tagRoomInfo);
+        return tagRoomInfo;
     }
     
     private String getStudentWithTag(String tagId) throws SQLException

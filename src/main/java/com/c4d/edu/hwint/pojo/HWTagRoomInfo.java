@@ -6,6 +6,7 @@
 package com.c4d.edu.hwint.pojo;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  *
@@ -77,8 +78,33 @@ public class HWTagRoomInfo
         this.dataReadTime = dataReadTime;
     }
  
-    public String toString()
+//    public String toString()
+//    {
+//     return recordId + " : " + roomId + " : " + tagId + " : " + sweepTime + " : " + rsi + " : " + uploadTime+ " : " +dataReadTime;
+//    }
+    
+    @Override
+    public int hashCode()
     {
-     return recordId + " : " + roomId + " : " + tagId + " : " + sweepTime + " : " + rsi + " : " + uploadTime+ " : " +dataReadTime;
+        
+        int hash = 3;
+        hash = 41 * hash + Objects.hashCode(this.roomId);
+        hash = 41 * hash + Objects.hashCode(this.tagId);
+        return hash;
+    }
+
+    public boolean equals(Object inComing) {
+        // This does not take into account the sweeptime.
+        if(inComing == null || (!(inComing instanceof HWTagRoomInfo)))
+            return false;
+        
+        HWTagRoomInfo inComingHWTagRoomInfo = (HWTagRoomInfo) inComing;
+        String thisValue = this.getTagId()+":"+this.getRoomId();
+        String inComingValue = inComingHWTagRoomInfo.getTagId()+":"+inComingHWTagRoomInfo.getRoomId();
+
+        if(thisValue.equalsIgnoreCase(inComingValue))
+            return true;
+        
+        return false;
     }
 }
