@@ -48,8 +48,9 @@ public class TagLocationInsightProcessor extends Thread {
     {
         while(true)
         {
+           System.out.println("Scan starts"); 
            makeInsights(); 
-           
+           System.out.println("Scan end.. now sleeping"); 
            try{
                Thread.sleep(scanInterval);
            }catch(InterruptedException e)
@@ -117,6 +118,7 @@ public class TagLocationInsightProcessor extends Thread {
             if(courseList==null)
             {
                // System.out.println("Course List was null");
+                  updateDateReadForTagLocationInfo(tagRoomInfo.getRecordId(), new Date());
                 continue;
             }
             
@@ -125,6 +127,7 @@ public class TagLocationInsightProcessor extends Thread {
             if(coursePeriodList==null)
             {
                // System.out.println("Course List was null");
+                  updateDateReadForTagLocationInfo(tagRoomInfo.getRecordId(), new Date());
                 continue;
             }
             else
@@ -159,9 +162,12 @@ public class TagLocationInsightProcessor extends Thread {
 
                 }
             }
-            //updateDateReadForTagLocationInfo(tagRoomInfo.getRecordId(), currentTime);
+            
+         updateDateReadForTagLocationInfo(tagRoomInfo.getRecordId(), new Date());
         }
         
+  
+         
         Iterator<SWAttendanceInfo> iterator = attendanceMap.keySet().iterator();
  
         while(iterator.hasNext())
